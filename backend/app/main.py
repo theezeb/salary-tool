@@ -9,15 +9,13 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Salary Management Tool",
-    description="HR salary management API for 10,000+ employees",
+    description="HR salary management API for 10,000+ employees", 
     version="1.0.0",
 )
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
         "https://salary-tool.up.railway.app",
     ],
     allow_credentials=True,
