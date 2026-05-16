@@ -133,7 +133,7 @@ def build_rows(first_names: list[str], last_names: list[str], count: int) -> lis
                 "salary": salary,
                 "currency": CURRENCIES_BY_COUNTRY[country],
                 "employment_type": emp_type,
-                "date_joined": random_date().isoformat(),
+                "date_joined": random_date(),
             }
         )
     return rows
