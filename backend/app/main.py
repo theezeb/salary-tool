@@ -15,7 +15,12 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # update to your frontend URL after deploy
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://salary-tool-frontend-production.up.railway.app",
+        "*",  # temporary — remove after confirming it works
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
