@@ -10,7 +10,7 @@ A full-stack HR salary management tool for organizations with 10,000+ employees.
 |-------|-----------|
 | Backend | Python 3.13 + FastAPI |
 | Database | SQLite via SQLAlchemy 2.0 (ORM + Core) |
-| Frontend | React 18 + Vite |
+| Frontend | React 19 + Vite |
 | Styling | Tailwind CSS v3 |
 | Charts | Recharts |
 | Data Fetching | TanStack React Query |
