@@ -18,8 +18,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://localhost:3000",
-        "https://salary-tool-frontend-production.up.railway.app",
-        "*",  # temporary — remove after confirming it works
+        "https://salary-tool-frontend-production.up.railway.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
