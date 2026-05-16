@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Plus,
@@ -12,7 +12,6 @@ import {
   ChevronsUpDown,
   X,
 } from 'lucide-react';
-import Fuse from 'fuse.js';
 import { getEmployees, getCountries, getDepartments } from '../lib/api';
 import { formatSalary } from '../lib/utils';
 import EmployeeModal from '../components/EmployeeModal';
@@ -40,6 +39,7 @@ function SortIcon({ col, sortBy, sortDir }) {
 export default function EmployeesPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [country, setCountry] = useState('');
   const [department, setDepartment] = useState('');
   const [sortBy, setSortBy] = useState('full_name');
@@ -48,8 +48,19 @@ export default function EmployeesPage() {
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
+  // Debounce search input to prevent firing API calls on every keystroke
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(1); // Reset to page 1 whenever search criteria changes
+    }, 300);
+
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Server-side fetching incorporating filters, sorting, and global search
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['employees', { page, country, department, sortBy, sortDir }],
+    queryKey: ['employees', { page, country, department, sortBy, sortDir, search: debouncedSearch }],
     queryFn: () =>
       getEmployees({
         page,
@@ -58,6 +69,7 @@ export default function EmployeesPage() {
         department,
         sort_by: sortBy,
         sort_dir: sortDir,
+        search: debouncedSearch, // Ensure your backend API handles this parameter
       }),
     keepPreviousData: true,
   });
@@ -66,27 +78,14 @@ export default function EmployeesPage() {
     queryKey: ['countries'],
     queryFn: getCountries,
   });
+  
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
     queryFn: getDepartments,
   });
 
-  // Fuzzy search on current page results
-  const fuse = useMemo(() => {
-    if (!data?.results) return null;
-    return new Fuse(data.results, {
-      keys: ['full_name', 'email', 'job_title', 'department', 'country'],
-      threshold: 0.35,
-      includeScore: true,
-    });
-  }, [data]);
-
-  const displayResults = useMemo(() => {
-    if (!data?.results) return [];
-    if (!search.trim()) return data.results;
-    return fuse?.search(search).map((r) => r.item) ?? data.results;
-  }, [data, search, fuse]);
-
+  // Results come pre-filtered directly from the server
+  const displayResults = data?.results ?? [];
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
 
   function handleSort(col) {
@@ -98,7 +97,7 @@ export default function EmployeesPage() {
     setPage(1);
   }
 
-  const hasFilters = country || department;
+  const hasFilters = country || department || search;
 
   const COLS = [
     { col: 'full_name', label: 'Name' },
@@ -143,7 +142,7 @@ export default function EmployeesPage() {
           boxShadow: 'var(--shadow)',
         }}
       >
-        {/* Fuzzy search */}
+        {/* Global Database Search Input */}
         <div className="relative flex-1 min-w-[220px]">
           <Search
             size={14}
@@ -152,7 +151,7 @@ export default function EmployeesPage() {
           />
           <input
             className="input pl-9 pr-8"
-            placeholder="Fuzzy search by name, title, email…"
+            placeholder="Search by name, title, email globally…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -211,6 +210,7 @@ export default function EmployeesPage() {
             onClick={() => {
               setCountry('');
               setDepartment('');
+              setSearch('');
               setPage(1);
             }}
             style={{ color: 'var(--danger)' }}
@@ -302,11 +302,11 @@ export default function EmployeesPage() {
                     className="px-4 py-16 text-center text-sm"
                     style={{ color: 'var(--text-muted)' }}
                   >
-                    No employees match your search.
+                    No employees match your search criteria.
                   </td>
                 </tr>
               )}
-              {displayResults.map((emp, i) => (
+              {!isLoading && !isError && displayResults.map((emp, i) => (
                 <tr
                   key={emp.id}
                   className="fade-in"
@@ -433,8 +433,8 @@ export default function EmployeesPage() {
           </table>
         </div>
 
-        {/* Pagination */}
-        {data && !search && (
+        {/* Pagination (Visible when data exists) */}
+        {data && (
           <div
             className="flex items-center justify-between px-4 py-3"
             style={{
@@ -445,7 +445,7 @@ export default function EmployeesPage() {
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               Showing{' '}
               <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-                {(page - 1) * PAGE_SIZE + 1}–
+                {data.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
                 {Math.min(page * PAGE_SIZE, data.total)}
               </span>{' '}
               of{' '}
@@ -471,27 +471,11 @@ export default function EmployeesPage() {
               <button
                 className="btn-secondary py-1 px-2"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
+                disabled={page === totalPages || totalPages === 0}
               >
                 <ChevronRight size={15} />
               </button>
             </div>
-          </div>
-        )}
-        {search && displayResults.length > 0 && (
-          <div
-            className="px-4 py-2.5 text-xs"
-            style={{
-              borderTop: '1px solid var(--border)',
-              backgroundColor: 'var(--surface-2)',
-              color: 'var(--text-muted)',
-            }}
-          >
-            Showing{' '}
-            <strong style={{ color: 'var(--accent)' }}>
-              {displayResults.length}
-            </strong>{' '}
-            fuzzy matches on this page
           </div>
         )}
       </div>
