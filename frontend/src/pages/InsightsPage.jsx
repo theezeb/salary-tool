@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend,
+  PieChart, Pie, Cell,
 } from "recharts";
 import { getDashboard, getByCountry, getByDepartment, getByJobTitle, getCountries } from "../lib/api";
 import { formatSalary, formatNumber } from "../lib/utils";
