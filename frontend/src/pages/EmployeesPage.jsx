@@ -120,11 +120,16 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+          <h1
+            className="text-2xl font-bold"
+            style={{ color: 'var(--text-primary)' }}
+          >
             Employees
           </h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            {data ? `${data.total.toLocaleString()} total employees` : 'Loading…'}
+            {data
+              ? `${data.total.toLocaleString()} total employees`
+              : 'Loading…'}
           </p>
         </div>
         <button className="btn-primary" onClick={() => setAddOpen(true)}>
@@ -172,7 +177,9 @@ export default function EmployeesPage() {
             setCountry(e.target.value);
             setPage(1);
           }}
-          style={{ color: country ? 'var(--text-primary)' : 'var(--text-muted)' }}
+          style={{
+            color: country ? 'var(--text-primary)' : 'var(--text-muted)',
+          }}
         >
           <option value="">All Countries</option>
           {countries.map((c) => (
@@ -189,7 +196,9 @@ export default function EmployeesPage() {
             setDepartment(e.target.value);
             setPage(1);
           }}
-          style={{ color: department ? 'var(--text-primary)' : 'var(--text-muted)' }}
+          style={{
+            color: department ? 'var(--text-primary)' : 'var(--text-muted)',
+          }}
         >
           <option value="">All Departments</option>
           {departments.map((d) => (
@@ -253,7 +262,9 @@ export default function EmployeesPage() {
                   >
                     <span className="flex items-center gap-1.5">
                       {label}
-                      {col && <SortIcon col={col} sortBy={sortBy} sortDir={sortDir} />}
+                      {col && (
+                        <SortIcon col={col} sortBy={sortBy} sortDir={sortDir} />
+                      )}
                     </span>
                   </th>
                 ))}
@@ -264,9 +275,16 @@ export default function EmployeesPage() {
               {/* Loading, Error, Empty states... (unchanged) */}
               {isLoading && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-16 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                  <td
+                    colSpan={8}
+                    className="px-4 py-16 text-center text-sm"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)' }} />
+                      <div
+                        className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
+                        style={{ borderColor: 'var(--accent)' }}
+                      />
                       Loading employees…
                     </div>
                   </td>
@@ -275,7 +293,11 @@ export default function EmployeesPage() {
 
               {isError && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-16 text-center text-sm" style={{ color: 'var(--danger)' }}>
+                  <td
+                    colSpan={8}
+                    className="px-4 py-16 text-center text-sm"
+                    style={{ color: 'var(--danger)' }}
+                  >
                     Failed to load employees. Check your connection.
                   </td>
                 </tr>
@@ -283,7 +305,11 @@ export default function EmployeesPage() {
 
               {!isLoading && !isError && displayResults.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-16 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
+                  <td
+                    colSpan={8}
+                    className="px-4 py-16 text-center text-sm"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
                     No employees match your search criteria.
                   </td>
                 </tr>
@@ -300,44 +326,80 @@ export default function EmployeesPage() {
                       transition: 'background-color 0.1s',
                       animationDelay: `${i * 0.015}s`,
                     }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        'var(--surface-2)')
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'transparent')
+                    }
                   >
                     {/* Rest of your row rendering (unchanged) */}
                     <td className="px-4 py-3.5">
-                      <div className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                      <div
+                        className="font-semibold text-sm"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
                         {emp.full_name}
                       </div>
-                      <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                      <div
+                        className="text-xs mt-0.5"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
                         {emp.email}
                       </div>
                     </td>
-                    <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       {emp.department}
                     </td>
-                    <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       {emp.job_title}
                     </td>
-                    <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
                       {emp.country}
                     </td>
                     <td className="px-4 py-3.5">
                       <span
                         className="badge text-xs"
                         style={{
-                          backgroundColor: TYPE_STYLES[emp.employment_type]?.bg || 'var(--surface-2)',
-                          color: TYPE_STYLES[emp.employment_type]?.color || 'var(--text-secondary)',
+                          backgroundColor:
+                            TYPE_STYLES[emp.employment_type]?.bg ||
+                            'var(--surface-2)',
+                          color:
+                            TYPE_STYLES[emp.employment_type]?.color ||
+                            'var(--text-secondary)',
                         }}
                       >
                         {emp.employment_type}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
+                      <span
+                        className="font-semibold text-sm"
+                        style={{
+                          color: 'var(--text-primary)',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
                         {formatSalary(emp.salary, emp.currency)}
                       </span>
                     </td>
-                    <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{
+                        color: 'var(--text-muted)',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
                       {emp.date_joined}
                     </td>
                     <td className="px-4 py-3.5">
@@ -346,11 +408,13 @@ export default function EmployeesPage() {
                           className="p-1.5 rounded-lg transition-colors"
                           style={{ color: 'var(--text-muted)' }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--accent-light)';
+                            e.currentTarget.style.backgroundColor =
+                              'var(--accent-light)';
                             e.currentTarget.style.color = 'var(--accent)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.backgroundColor =
+                              'transparent';
                             e.currentTarget.style.color = 'var(--text-muted)';
                           }}
                           onClick={() => setEditTarget(emp)}
@@ -362,11 +426,13 @@ export default function EmployeesPage() {
                           className="p-1.5 rounded-lg transition-colors"
                           style={{ color: 'var(--text-muted)' }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'var(--danger-light)';
+                            e.currentTarget.style.backgroundColor =
+                              'var(--danger-light)';
                             e.currentTarget.style.color = 'var(--danger)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
+                            e.currentTarget.style.backgroundColor =
+                              'transparent';
                             e.currentTarget.style.color = 'var(--text-muted)';
                           }}
                           onClick={() => setDeleteTarget(emp)}
@@ -394,9 +460,14 @@ export default function EmployeesPage() {
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               Showing{' '}
               <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-                {data.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.total)}
+                {data.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
+                {Math.min(page * PAGE_SIZE, data.total)}
               </span>{' '}
-              of <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{data.total.toLocaleString()}</span> employees
+              of{' '}
+              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
+                {data.total.toLocaleString()}
+              </span>{' '}
+              employees
             </p>
 
             <div className="flex items-center gap-2">
@@ -407,7 +478,10 @@ export default function EmployeesPage() {
               >
                 <ChevronLeft size={15} />
               </button>
-              <span className="text-xs px-2" style={{ color: 'var(--text-secondary)' }}>
+              <span
+                className="text-xs px-2"
+                style={{ color: 'var(--text-secondary)' }}
+              >
                 Page <strong>{page}</strong> of <strong>{totalPages}</strong>
               </span>
               <button
@@ -423,9 +497,21 @@ export default function EmployeesPage() {
       </div>
 
       {/* Modals */}
-      <EmployeeModal open={addOpen} onClose={() => setAddOpen(false)} employee={null} />
-      <EmployeeModal open={Boolean(editTarget)} onClose={() => setEditTarget(null)} employee={editTarget} />
-      <DeleteModal open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} employee={deleteTarget} />
+      <EmployeeModal
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        employee={null}
+      />
+      <EmployeeModal
+        open={Boolean(editTarget)}
+        onClose={() => setEditTarget(null)}
+        employee={editTarget}
+      />
+      <DeleteModal
+        open={Boolean(deleteTarget)}
+        onClose={() => setDeleteTarget(null)}
+        employee={deleteTarget}
+      />
     </div>
   );
 }

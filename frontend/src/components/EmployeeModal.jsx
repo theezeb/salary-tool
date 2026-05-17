@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import PropTypes from 'prop-types';
 
-const createEmployee = async (data) => new Promise(res => setTimeout(res, 500));
-const updateEmployee = async (id, data) => new Promise(res => setTimeout(res, 500));
+const createEmployee = async () => new Promise((res) => setTimeout(res, 500));
+const updateEmployee = async () => new Promise((res) => setTimeout(res, 500));
 
 const COUNTRIES = [
   'United States',
@@ -72,27 +73,29 @@ const EMPTY = {
 export default function EmployeeModal({ open, onClose, employee }) {
   const qc = useQueryClient();
   const isEdit = Boolean(employee);
+
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
-  const [mounted, setMounted] = useState(false);
 
-  // Ensures we only attempt to portal on the client-side (safe for SSR like Next.js)
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const prevOpenRef = useRef(false);
 
+  // Reset form when modal opens
   useEffect(() => {
-    if (open) {
+    if (open && !prevOpenRef.current) {
+      // Only reset when transitioning from closed → open
       setForm(
-        employee ? { ...employee, salary: String(employee.salary) } : EMPTY
+        employee
+          ? { ...employee, salary: String(employee.salary ?? '') }
+          : EMPTY
       );
       setErrors({});
     }
+    prevOpenRef.current = open;
   }, [open, employee]);
 
   const mutation = useMutation({
     mutationFn: (data) =>
-      isEdit ? updateEmployee(employee.id, data) : createEmployee(data),
+      isEdit ? updateEmployee(employee?.id, data) : createEmployee(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['employees'] });
       onClose();
@@ -101,8 +104,8 @@ export default function EmployeeModal({ open, onClose, employee }) {
 
   function validate() {
     const e = {};
-    if (!form.full_name.trim()) e.full_name = 'Required';
-    if (!form.email.trim()) e.email = 'Required';
+    if (!form.full_name?.trim()) e.full_name = 'Required';
+    if (!form.email?.trim()) e.email = 'Required';
     if (!form.job_title) e.job_title = 'Required';
     if (!form.department) e.department = 'Required';
     if (!form.country) e.country = 'Required';
@@ -115,7 +118,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
   function handleSubmit(ev) {
     ev.preventDefault();
     const e = validate();
-    if (Object.keys(e).length) {
+    if (Object.keys(e).length > 0) {
       setErrors(e);
       return;
     }
@@ -166,8 +169,8 @@ export default function EmployeeModal({ open, onClose, employee }) {
     );
   }
 
-  // Prevent rendering on the server or when closed
-  if (!open || !mounted) return null;
+  // Early return - prevent rendering on server + when closed
+  if (!open || typeof document === 'undefined') return null;
 
   // Portal the modal to document.body to escape the parent container's transform context
   return createPortal(
@@ -285,3 +288,21 @@ export default function EmployeeModal({ open, onClose, employee }) {
     document.body
   );
 }
+
+// Props Validation
+EmployeeModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  employee: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    full_name: PropTypes.string,
+    email: PropTypes.string,
+    job_title: PropTypes.string,
+    department: PropTypes.string,
+    country: PropTypes.string,
+    salary: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    currency: PropTypes.string,
+    employment_type: PropTypes.string,
+    date_joined: PropTypes.string,
+  }),
+};
