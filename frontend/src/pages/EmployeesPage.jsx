@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useQuery } from '@tanstack/react-query';
 import {
   Plus,
@@ -12,8 +13,10 @@ import {
   ChevronsUpDown,
   X,
 } from 'lucide-react';
+
 import { getEmployees, getCountries, getDepartments } from '../lib/api';
 import { formatSalary } from '../lib/utils';
+
 import EmployeeModal from '../components/EmployeeModal';
 import DeleteModal from '../components/DeleteModal';
 
@@ -48,17 +51,16 @@ export default function EmployeesPage() {
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Debounce search input to prevent firing API calls on every keystroke
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
-      setPage(1); // Reset to page 1 whenever search criteria changes
+      setPage(1);
     }, 300);
-
     return () => clearTimeout(handler);
   }, [search]);
 
-  // Server-side fetching incorporating filters, sorting, and global search
+  // Main employees query
   const { data, isLoading, isError } = useQuery({
     queryKey: [
       'employees',
@@ -72,7 +74,7 @@ export default function EmployeesPage() {
         department,
         sort_by: sortBy,
         sort_dir: sortDir,
-        search: debouncedSearch, // Ensure your backend API handles this parameter
+        search: debouncedSearch,
       }),
     keepPreviousData: true,
   });
@@ -87,13 +89,13 @@ export default function EmployeesPage() {
     queryFn: getDepartments,
   });
 
-  // Results come pre-filtered directly from the server
   const displayResults = data?.results ?? [];
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
 
   function handleSort(col) {
-    if (sortBy === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    else {
+    if (sortBy === col) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
       setSortBy(col);
       setSortDir('asc');
     }
@@ -118,16 +120,11 @@ export default function EmployeesPage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1
-            className="text-2xl font-bold"
-            style={{ color: 'var(--text-primary)' }}
-          >
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
             Employees
           </h1>
           <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            {data
-              ? `${data.total.toLocaleString()} total employees`
-              : 'Loading…'}
+            {data ? `${data.total.toLocaleString()} total employees` : 'Loading…'}
           </p>
         </div>
         <button className="btn-primary" onClick={() => setAddOpen(true)}>
@@ -145,7 +142,6 @@ export default function EmployeesPage() {
           boxShadow: 'var(--shadow)',
         }}
       >
-        {/* Global Database Search Input */}
         <div className="relative flex-1 min-w-[220px]">
           <Search
             size={14}
@@ -176,9 +172,7 @@ export default function EmployeesPage() {
             setCountry(e.target.value);
             setPage(1);
           }}
-          style={{
-            color: country ? 'var(--text-primary)' : 'var(--text-muted)',
-          }}
+          style={{ color: country ? 'var(--text-primary)' : 'var(--text-muted)' }}
         >
           <option value="">All Countries</option>
           {countries.map((c) => (
@@ -195,9 +189,7 @@ export default function EmployeesPage() {
             setDepartment(e.target.value);
             setPage(1);
           }}
-          style={{
-            color: department ? 'var(--text-primary)' : 'var(--text-muted)',
-          }}
+          style={{ color: department ? 'var(--text-primary)' : 'var(--text-muted)' }}
         >
           <option value="">All Departments</option>
           {departments.map((d) => (
@@ -244,12 +236,15 @@ export default function EmployeesPage() {
               <col style={{ width: '10%' }} />
               <col style={{ width: '7%' }} />
             </colgroup>
+
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 {COLS.map(({ col, label }) => (
                   <th
                     key={label || 'actions'}
-                    className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${col ? 'cursor-pointer select-none' : ''}`}
+                    className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                      col ? 'cursor-pointer select-none' : ''
+                    }`}
                     style={{
                       backgroundColor: 'var(--surface-2)',
                       color: 'var(--text-muted)',
@@ -258,57 +253,42 @@ export default function EmployeesPage() {
                   >
                     <span className="flex items-center gap-1.5">
                       {label}
-                      {col && (
-                        <SortIcon col={col} sortBy={sortBy} sortDir={sortDir} />
-                      )}
+                      {col && <SortIcon col={col} sortBy={sortBy} sortDir={sortDir} />}
                     </span>
                   </th>
                 ))}
               </tr>
             </thead>
+
             <tbody>
+              {/* Loading, Error, Empty states... (unchanged) */}
               {isLoading && (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-16 text-center text-sm"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
+                  <td colSpan={8} className="px-4 py-16 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
                     <div className="flex items-center justify-center gap-2">
-                      <div
-                        className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
-                        style={{
-                          borderColor: 'var(--accent)',
-                          borderTopColor: 'transparent',
-                        }}
-                      />
+                      <div className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: 'var(--accent)' }} />
                       Loading employees…
                     </div>
                   </td>
                 </tr>
               )}
+
               {isError && (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-16 text-center text-sm"
-                    style={{ color: 'var(--danger)' }}
-                  >
+                  <td colSpan={8} className="px-4 py-16 text-center text-sm" style={{ color: 'var(--danger)' }}>
                     Failed to load employees. Check your connection.
                   </td>
                 </tr>
               )}
+
               {!isLoading && !isError && displayResults.length === 0 && (
                 <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-16 text-center text-sm"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
+                  <td colSpan={8} className="px-4 py-16 text-center text-sm" style={{ color: 'var(--text-muted)' }}>
                     No employees match your search criteria.
                   </td>
                 </tr>
               )}
+
               {!isLoading &&
                 !isError &&
                 displayResults.map((emp, i) => (
@@ -320,79 +300,44 @@ export default function EmployeesPage() {
                       transition: 'background-color 0.1s',
                       animationDelay: `${i * 0.015}s`,
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor =
-                        'var(--surface-2)')
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = 'transparent')
-                    }
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-2)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
+                    {/* Rest of your row rendering (unchanged) */}
                     <td className="px-4 py-3.5">
-                      <div
-                        className="font-semibold text-sm"
-                        style={{ color: 'var(--text-primary)' }}
-                      >
+                      <div className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
                         {emp.full_name}
                       </div>
-                      <div
-                        className="text-xs mt-0.5"
-                        style={{ color: 'var(--text-muted)' }}
-                      >
+                      <div className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                         {emp.email}
                       </div>
                     </td>
-                    <td
-                      className="px-4 py-3.5 text-sm"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
+                    <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
                       {emp.department}
                     </td>
-                    <td
-                      className="px-4 py-3.5 text-sm"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
+                    <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
                       {emp.job_title}
                     </td>
-                    <td
-                      className="px-4 py-3.5 text-sm"
-                      style={{ color: 'var(--text-secondary)' }}
-                    >
+                    <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
                       {emp.country}
                     </td>
                     <td className="px-4 py-3.5">
                       <span
                         className="badge text-xs"
                         style={{
-                          backgroundColor:
-                            TYPE_STYLES[emp.employment_type]?.bg ||
-                            'var(--surface-2)',
-                          color:
-                            TYPE_STYLES[emp.employment_type]?.color ||
-                            'var(--text-secondary)',
+                          backgroundColor: TYPE_STYLES[emp.employment_type]?.bg || 'var(--surface-2)',
+                          color: TYPE_STYLES[emp.employment_type]?.color || 'var(--text-secondary)',
                         }}
                       >
                         {emp.employment_type}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
-                      <span
-                        className="font-semibold text-sm"
-                        style={{
-                          color: 'var(--text-primary)',
-                          fontVariantNumeric: 'tabular-nums',
-                        }}
-                      >
+                      <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)', fontVariantNumeric: 'tabular-nums' }}>
                         {formatSalary(emp.salary, emp.currency)}
                       </span>
                     </td>
-                    <td
-                      className="px-4 py-3.5 text-sm"
-                      style={{
-                        color: 'var(--text-muted)',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}
-                    >
+                    <td className="px-4 py-3.5 text-sm" style={{ color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
                       {emp.date_joined}
                     </td>
                     <td className="px-4 py-3.5">
@@ -401,13 +346,11 @@ export default function EmployeesPage() {
                           className="p-1.5 rounded-lg transition-colors"
                           style={{ color: 'var(--text-muted)' }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--accent-light)';
+                            e.currentTarget.style.backgroundColor = 'var(--accent-light)';
                             e.currentTarget.style.color = 'var(--accent)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'transparent';
+                            e.currentTarget.style.backgroundColor = 'transparent';
                             e.currentTarget.style.color = 'var(--text-muted)';
                           }}
                           onClick={() => setEditTarget(emp)}
@@ -419,13 +362,11 @@ export default function EmployeesPage() {
                           className="p-1.5 rounded-lg transition-colors"
                           style={{ color: 'var(--text-muted)' }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'var(--danger-light)';
+                            e.currentTarget.style.backgroundColor = 'var(--danger-light)';
                             e.currentTarget.style.color = 'var(--danger)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor =
-                              'transparent';
+                            e.currentTarget.style.backgroundColor = 'transparent';
                             e.currentTarget.style.color = 'var(--text-muted)';
                           }}
                           onClick={() => setDeleteTarget(emp)}
@@ -441,7 +382,7 @@ export default function EmployeesPage() {
           </table>
         </div>
 
-        {/* Pagination (Visible when data exists) */}
+        {/* Pagination */}
         {data && (
           <div
             className="flex items-center justify-between px-4 py-3"
@@ -453,15 +394,11 @@ export default function EmployeesPage() {
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               Showing{' '}
               <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-                {data.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–
-                {Math.min(page * PAGE_SIZE, data.total)}
+                {data.total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.total)}
               </span>{' '}
-              of{' '}
-              <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
-                {data.total.toLocaleString()}
-              </span>{' '}
-              employees
+              of <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{data.total.toLocaleString()}</span> employees
             </p>
+
             <div className="flex items-center gap-2">
               <button
                 className="btn-secondary py-1 px-2"
@@ -470,10 +407,7 @@ export default function EmployeesPage() {
               >
                 <ChevronLeft size={15} />
               </button>
-              <span
-                className="text-xs px-2"
-                style={{ color: 'var(--text-secondary)' }}
-              >
+              <span className="text-xs px-2" style={{ color: 'var(--text-secondary)' }}>
                 Page <strong>{page}</strong> of <strong>{totalPages}</strong>
               </span>
               <button
@@ -488,21 +422,22 @@ export default function EmployeesPage() {
         )}
       </div>
 
-      <EmployeeModal
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        employee={null}
-      />
-      <EmployeeModal
-        open={Boolean(editTarget)}
-        onClose={() => setEditTarget(null)}
-        employee={editTarget}
-      />
-      <DeleteModal
-        open={Boolean(deleteTarget)}
-        onClose={() => setDeleteTarget(null)}
-        employee={deleteTarget}
-      />
+      {/* Modals */}
+      <EmployeeModal open={addOpen} onClose={() => setAddOpen(false)} employee={null} />
+      <EmployeeModal open={Boolean(editTarget)} onClose={() => setEditTarget(null)} employee={editTarget} />
+      <DeleteModal open={Boolean(deleteTarget)} onClose={() => setDeleteTarget(null)} employee={deleteTarget} />
     </div>
   );
 }
+
+/* ==================== PropTypes ==================== */
+
+EmployeesPage.propTypes = {
+  // Currently no props are used. Add here when needed (e.g. from router)
+};
+
+SortIcon.propTypes = {
+  col: PropTypes.string,
+  sortBy: PropTypes.string.isRequired,
+  sortDir: PropTypes.oneOf(['asc', 'desc']).isRequired,
+};
