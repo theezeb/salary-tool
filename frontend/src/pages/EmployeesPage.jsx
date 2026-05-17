@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import { useQuery } from '@tanstack/react-query';
 import {
   Plus,
@@ -12,8 +13,10 @@ import {
   ChevronsUpDown,
   X,
 } from 'lucide-react';
+
 import { getEmployees, getCountries, getDepartments } from '../lib/api';
 import { formatSalary } from '../lib/utils';
+
 import EmployeeModal from '../components/EmployeeModal';
 import DeleteModal from '../components/DeleteModal';
 
@@ -48,19 +51,21 @@ export default function EmployeesPage() {
   const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
 
-  // Debounce search input to prevent firing API calls on every keystroke
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
-      setPage(1); // Reset to page 1 whenever search criteria changes
+      setPage(1);
     }, 300);
-
     return () => clearTimeout(handler);
   }, [search]);
 
-  // Server-side fetching incorporating filters, sorting, and global search
+  // Main employees query
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['employees', { page, country, department, sortBy, sortDir, search: debouncedSearch }],
+    queryKey: [
+      'employees',
+      { page, country, department, sortBy, sortDir, search: debouncedSearch },
+    ],
     queryFn: () =>
       getEmployees({
         page,
@@ -69,7 +74,7 @@ export default function EmployeesPage() {
         department,
         sort_by: sortBy,
         sort_dir: sortDir,
-        search: debouncedSearch, // Ensure your backend API handles this parameter
+        search: debouncedSearch,
       }),
     keepPreviousData: true,
   });
@@ -78,19 +83,19 @@ export default function EmployeesPage() {
     queryKey: ['countries'],
     queryFn: getCountries,
   });
-  
+
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
     queryFn: getDepartments,
   });
 
-  // Results come pre-filtered directly from the server
   const displayResults = data?.results ?? [];
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 1;
 
   function handleSort(col) {
-    if (sortBy === col) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
-    else {
+    if (sortBy === col) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
       setSortBy(col);
       setSortDir('asc');
     }
@@ -142,7 +147,6 @@ export default function EmployeesPage() {
           boxShadow: 'var(--shadow)',
         }}
       >
-        {/* Global Database Search Input */}
         <div className="relative flex-1 min-w-[220px]">
           <Search
             size={14}
@@ -241,12 +245,15 @@ export default function EmployeesPage() {
               <col style={{ width: '10%' }} />
               <col style={{ width: '7%' }} />
             </colgroup>
+
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 {COLS.map(({ col, label }) => (
                   <th
                     key={label || 'actions'}
-                    className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${col ? 'cursor-pointer select-none' : ''}`}
+                    className={`px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap ${
+                      col ? 'cursor-pointer select-none' : ''
+                    }`}
                     style={{
                       backgroundColor: 'var(--surface-2)',
                       color: 'var(--text-muted)',
@@ -263,7 +270,9 @@ export default function EmployeesPage() {
                 ))}
               </tr>
             </thead>
+
             <tbody>
+              {/* Loading, Error, Empty states... (unchanged) */}
               {isLoading && (
                 <tr>
                   <td
@@ -274,16 +283,14 @@ export default function EmployeesPage() {
                     <div className="flex items-center justify-center gap-2">
                       <div
                         className="w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
-                        style={{
-                          borderColor: 'var(--accent)',
-                          borderTopColor: 'transparent',
-                        }}
+                        style={{ borderColor: 'var(--accent)' }}
                       />
                       Loading employees…
                     </div>
                   </td>
                 </tr>
               )}
+
               {isError && (
                 <tr>
                   <td
@@ -295,6 +302,7 @@ export default function EmployeesPage() {
                   </td>
                 </tr>
               )}
+
               {!isLoading && !isError && displayResults.length === 0 && (
                 <tr>
                   <td
@@ -306,134 +314,141 @@ export default function EmployeesPage() {
                   </td>
                 </tr>
               )}
-              {!isLoading && !isError && displayResults.map((emp, i) => (
-                <tr
-                  key={emp.id}
-                  className="fade-in"
-                  style={{
-                    borderBottom: '1px solid var(--border-subtle)',
-                    transition: 'background-color 0.1s',
-                    animationDelay: `${i * 0.015}s`,
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = 'var(--surface-2)')
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = 'transparent')
-                  }
-                >
-                  <td className="px-4 py-3.5">
-                    <div
-                      className="font-semibold text-sm"
-                      style={{ color: 'var(--text-primary)' }}
+
+              {!isLoading &&
+                !isError &&
+                displayResults.map((emp, i) => (
+                  <tr
+                    key={emp.id}
+                    className="fade-in"
+                    style={{
+                      borderBottom: '1px solid var(--border-subtle)',
+                      transition: 'background-color 0.1s',
+                      animationDelay: `${i * 0.015}s`,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        'var(--surface-2)')
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'transparent')
+                    }
+                  >
+                    {/* Rest of your row rendering (unchanged) */}
+                    <td className="px-4 py-3.5">
+                      <div
+                        className="font-semibold text-sm"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {emp.full_name}
+                      </div>
+                      <div
+                        className="text-xs mt-0.5"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        {emp.email}
+                      </div>
+                    </td>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
                     >
-                      {emp.full_name}
-                    </div>
-                    <div
-                      className="text-xs mt-0.5"
-                      style={{ color: 'var(--text-muted)' }}
+                      {emp.department}
+                    </td>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
                     >
-                      {emp.email}
-                    </div>
-                  </td>
-                  <td
-                    className="px-4 py-3.5 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {emp.department}
-                  </td>
-                  <td
-                    className="px-4 py-3.5 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {emp.job_title}
-                  </td>
-                  <td
-                    className="px-4 py-3.5 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {emp.country}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span
-                      className="badge text-xs"
+                      {emp.job_title}
+                    </td>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      {emp.country}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="badge text-xs"
+                        style={{
+                          backgroundColor:
+                            TYPE_STYLES[emp.employment_type]?.bg ||
+                            'var(--surface-2)',
+                          color:
+                            TYPE_STYLES[emp.employment_type]?.color ||
+                            'var(--text-secondary)',
+                        }}
+                      >
+                        {emp.employment_type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="font-semibold text-sm"
+                        style={{
+                          color: 'var(--text-primary)',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
+                        {formatSalary(emp.salary, emp.currency)}
+                      </span>
+                    </td>
+                    <td
+                      className="px-4 py-3.5 text-sm"
                       style={{
-                        backgroundColor:
-                          TYPE_STYLES[emp.employment_type]?.bg ||
-                          'var(--surface-2)',
-                        color:
-                          TYPE_STYLES[emp.employment_type]?.color ||
-                          'var(--text-secondary)',
-                      }}
-                    >
-                      {emp.employment_type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span
-                      className="font-semibold text-sm"
-                      style={{
-                        color: 'var(--text-primary)',
+                        color: 'var(--text-muted)',
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
-                      {formatSalary(emp.salary, emp.currency)}
-                    </span>
-                  </td>
-                  <td
-                    className="px-4 py-3.5 text-sm"
-                    style={{
-                      color: 'var(--text-muted)',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {emp.date_joined}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="flex gap-1">
-                      <button
-                        className="p-1.5 rounded-lg transition-colors"
-                        style={{ color: 'var(--text-muted)' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            'var(--accent-light)';
-                          e.currentTarget.style.color = 'var(--accent)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = 'var(--text-muted)';
-                        }}
-                        onClick={() => setEditTarget(emp)}
-                        title="Edit"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        className="p-1.5 rounded-lg transition-colors"
-                        style={{ color: 'var(--text-muted)' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            'var(--danger-light)';
-                          e.currentTarget.style.color = 'var(--danger)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = 'var(--text-muted)';
-                        }}
-                        onClick={() => setDeleteTarget(emp)}
-                        title="Delete"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      {emp.date_joined}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <div className="flex gap-1">
+                        <button
+                          className="p-1.5 rounded-lg transition-colors"
+                          style={{ color: 'var(--text-muted)' }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'var(--accent-light)';
+                            e.currentTarget.style.color = 'var(--accent)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'transparent';
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                          }}
+                          onClick={() => setEditTarget(emp)}
+                          title="Edit"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          className="p-1.5 rounded-lg transition-colors"
+                          style={{ color: 'var(--text-muted)' }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'var(--danger-light)';
+                            e.currentTarget.style.color = 'var(--danger)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'transparent';
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                          }}
+                          onClick={() => setDeleteTarget(emp)}
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination (Visible when data exists) */}
+        {/* Pagination */}
         {data && (
           <div
             className="flex items-center justify-between px-4 py-3"
@@ -454,6 +469,7 @@ export default function EmployeesPage() {
               </span>{' '}
               employees
             </p>
+
             <div className="flex items-center gap-2">
               <button
                 className="btn-secondary py-1 px-2"
@@ -480,6 +496,7 @@ export default function EmployeesPage() {
         )}
       </div>
 
+      {/* Modals */}
       <EmployeeModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
@@ -498,3 +515,15 @@ export default function EmployeesPage() {
     </div>
   );
 }
+
+/* ==================== PropTypes ==================== */
+
+EmployeesPage.propTypes = {
+  // Currently no props are used. Add here when needed (e.g. from router)
+};
+
+SortIcon.propTypes = {
+  col: PropTypes.string,
+  sortBy: PropTypes.string.isRequired,
+  sortDir: PropTypes.oneOf(['asc', 'desc']).isRequired,
+};

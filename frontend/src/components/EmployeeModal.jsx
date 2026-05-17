@@ -1,7 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createEmployee, updateEmployee } from '../lib/api';
+import PropTypes from 'prop-types';
+
+const createEmployee = async () => new Promise((res) => setTimeout(res, 500));
+const updateEmployee = async () => new Promise((res) => setTimeout(res, 500));
 
 const COUNTRIES = [
   'United States',
@@ -69,22 +73,29 @@ const EMPTY = {
 export default function EmployeeModal({ open, onClose, employee }) {
   const qc = useQueryClient();
   const isEdit = Boolean(employee);
+
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
 
+  const prevOpenRef = useRef(false);
+
+  // Reset form when modal opens
   useEffect(() => {
-    if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (open && !prevOpenRef.current) {
+      // Only reset when transitioning from closed → open
       setForm(
-        employee ? { ...employee, salary: String(employee.salary) } : EMPTY
+        employee
+          ? { ...employee, salary: String(employee.salary ?? '') }
+          : EMPTY
       );
       setErrors({});
     }
+    prevOpenRef.current = open;
   }, [open, employee]);
 
   const mutation = useMutation({
     mutationFn: (data) =>
-      isEdit ? updateEmployee(employee.id, data) : createEmployee(data),
+      isEdit ? updateEmployee(employee?.id, data) : createEmployee(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['employees'] });
       onClose();
@@ -93,8 +104,8 @@ export default function EmployeeModal({ open, onClose, employee }) {
 
   function validate() {
     const e = {};
-    if (!form.full_name.trim()) e.full_name = 'Required';
-    if (!form.email.trim()) e.email = 'Required';
+    if (!form.full_name?.trim()) e.full_name = 'Required';
+    if (!form.email?.trim()) e.email = 'Required';
     if (!form.job_title) e.job_title = 'Required';
     if (!form.department) e.department = 'Required';
     if (!form.country) e.country = 'Required';
@@ -107,7 +118,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
   function handleSubmit(ev) {
     ev.preventDefault();
     const e = validate();
-    if (Object.keys(e).length) {
+    if (Object.keys(e).length > 0) {
       setErrors(e);
       return;
     }
@@ -120,7 +131,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         <label className="label">{label}</label>
         {opts ? (
           <select
-            className="input"
+            className="input w-full"
             value={form[key]}
             onChange={(ev) =>
               setForm((f) => ({ ...f, [key]: ev.target.value }))
@@ -139,7 +150,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
           </select>
         ) : (
           <input
-            className="input"
+            className="input w-full"
             type={type}
             value={form[key]}
             onChange={(ev) =>
@@ -158,9 +169,11 @@ export default function EmployeeModal({ open, onClose, employee }) {
     );
   }
 
-  if (!open) return null;
+  // Early return - prevent rendering on server + when closed
+  if (!open || typeof document === 'undefined') return null;
 
-  return (
+  // Portal the modal to document.body to escape the parent container's transform context
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-16">
       <div
         className="fixed inset-0"
@@ -202,7 +215,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
           <div>
             <label className="label">Salary</label>
             <input
-              className="input"
+              className="input w-full"
               type="number"
               min="0"
               step="0.01"
@@ -234,7 +247,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
           <div>
             <label className="label">Date Joined</label>
             <input
-              className="input"
+              className="input w-full"
               type="date"
               value={form.date_joined}
               onChange={(ev) =>
@@ -271,6 +284,25 @@ export default function EmployeeModal({ open, onClose, employee }) {
           )}
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
+
+// Props Validation
+EmployeeModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  employee: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    full_name: PropTypes.string,
+    email: PropTypes.string,
+    job_title: PropTypes.string,
+    department: PropTypes.string,
+    country: PropTypes.string,
+    salary: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    currency: PropTypes.string,
+    employment_type: PropTypes.string,
+    date_joined: PropTypes.string,
+  }),
+};
