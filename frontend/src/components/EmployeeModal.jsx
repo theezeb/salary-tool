@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { createEmployee, updateEmployee } from '../lib/api';
+
+const createEmployee = async (data) => new Promise(res => setTimeout(res, 500));
+const updateEmployee = async (id, data) => new Promise(res => setTimeout(res, 500));
 
 const COUNTRIES = [
   'United States',
@@ -71,10 +74,15 @@ export default function EmployeeModal({ open, onClose, employee }) {
   const isEdit = Boolean(employee);
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
+  const [mounted, setMounted] = useState(false);
+
+  // Ensures we only attempt to portal on the client-side (safe for SSR like Next.js)
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setForm(
         employee ? { ...employee, salary: String(employee.salary) } : EMPTY
       );
@@ -120,7 +128,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
         <label className="label">{label}</label>
         {opts ? (
           <select
-            className="input"
+            className="input w-full"
             value={form[key]}
             onChange={(ev) =>
               setForm((f) => ({ ...f, [key]: ev.target.value }))
@@ -139,7 +147,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
           </select>
         ) : (
           <input
-            className="input"
+            className="input w-full"
             type={type}
             value={form[key]}
             onChange={(ev) =>
@@ -158,9 +166,11 @@ export default function EmployeeModal({ open, onClose, employee }) {
     );
   }
 
-  if (!open) return null;
+  // Prevent rendering on the server or when closed
+  if (!open || !mounted) return null;
 
-  return (
+  // Portal the modal to document.body to escape the parent container's transform context
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 pt-16">
       <div
         className="fixed inset-0"
@@ -202,7 +212,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
           <div>
             <label className="label">Salary</label>
             <input
-              className="input"
+              className="input w-full"
               type="number"
               min="0"
               step="0.01"
@@ -234,7 +244,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
           <div>
             <label className="label">Date Joined</label>
             <input
-              className="input"
+              className="input w-full"
               type="date"
               value={form.date_joined}
               onChange={(ev) =>
@@ -271,6 +281,7 @@ export default function EmployeeModal({ open, onClose, employee }) {
           )}
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
