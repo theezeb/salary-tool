@@ -60,7 +60,10 @@ export default function EmployeesPage() {
 
   // Server-side fetching incorporating filters, sorting, and global search
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['employees', { page, country, department, sortBy, sortDir, search: debouncedSearch }],
+    queryKey: [
+      'employees',
+      { page, country, department, sortBy, sortDir, search: debouncedSearch },
+    ],
     queryFn: () =>
       getEmployees({
         page,
@@ -78,7 +81,7 @@ export default function EmployeesPage() {
     queryKey: ['countries'],
     queryFn: getCountries,
   });
-  
+
   const { data: departments = [] } = useQuery({
     queryKey: ['departments'],
     queryFn: getDepartments,
@@ -306,129 +309,134 @@ export default function EmployeesPage() {
                   </td>
                 </tr>
               )}
-              {!isLoading && !isError && displayResults.map((emp, i) => (
-                <tr
-                  key={emp.id}
-                  className="fade-in"
-                  style={{
-                    borderBottom: '1px solid var(--border-subtle)',
-                    transition: 'background-color 0.1s',
-                    animationDelay: `${i * 0.015}s`,
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = 'var(--surface-2)')
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = 'transparent')
-                  }
-                >
-                  <td className="px-4 py-3.5">
-                    <div
-                      className="font-semibold text-sm"
-                      style={{ color: 'var(--text-primary)' }}
+              {!isLoading &&
+                !isError &&
+                displayResults.map((emp, i) => (
+                  <tr
+                    key={emp.id}
+                    className="fade-in"
+                    style={{
+                      borderBottom: '1px solid var(--border-subtle)',
+                      transition: 'background-color 0.1s',
+                      animationDelay: `${i * 0.015}s`,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor =
+                        'var(--surface-2)')
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = 'transparent')
+                    }
+                  >
+                    <td className="px-4 py-3.5">
+                      <div
+                        className="font-semibold text-sm"
+                        style={{ color: 'var(--text-primary)' }}
+                      >
+                        {emp.full_name}
+                      </div>
+                      <div
+                        className="text-xs mt-0.5"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        {emp.email}
+                      </div>
+                    </td>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
                     >
-                      {emp.full_name}
-                    </div>
-                    <div
-                      className="text-xs mt-0.5"
-                      style={{ color: 'var(--text-muted)' }}
+                      {emp.department}
+                    </td>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
                     >
-                      {emp.email}
-                    </div>
-                  </td>
-                  <td
-                    className="px-4 py-3.5 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {emp.department}
-                  </td>
-                  <td
-                    className="px-4 py-3.5 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {emp.job_title}
-                  </td>
-                  <td
-                    className="px-4 py-3.5 text-sm"
-                    style={{ color: 'var(--text-secondary)' }}
-                  >
-                    {emp.country}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span
-                      className="badge text-xs"
+                      {emp.job_title}
+                    </td>
+                    <td
+                      className="px-4 py-3.5 text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      {emp.country}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="badge text-xs"
+                        style={{
+                          backgroundColor:
+                            TYPE_STYLES[emp.employment_type]?.bg ||
+                            'var(--surface-2)',
+                          color:
+                            TYPE_STYLES[emp.employment_type]?.color ||
+                            'var(--text-secondary)',
+                        }}
+                      >
+                        {emp.employment_type}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span
+                        className="font-semibold text-sm"
+                        style={{
+                          color: 'var(--text-primary)',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}
+                      >
+                        {formatSalary(emp.salary, emp.currency)}
+                      </span>
+                    </td>
+                    <td
+                      className="px-4 py-3.5 text-sm"
                       style={{
-                        backgroundColor:
-                          TYPE_STYLES[emp.employment_type]?.bg ||
-                          'var(--surface-2)',
-                        color:
-                          TYPE_STYLES[emp.employment_type]?.color ||
-                          'var(--text-secondary)',
-                      }}
-                    >
-                      {emp.employment_type}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <span
-                      className="font-semibold text-sm"
-                      style={{
-                        color: 'var(--text-primary)',
+                        color: 'var(--text-muted)',
                         fontVariantNumeric: 'tabular-nums',
                       }}
                     >
-                      {formatSalary(emp.salary, emp.currency)}
-                    </span>
-                  </td>
-                  <td
-                    className="px-4 py-3.5 text-sm"
-                    style={{
-                      color: 'var(--text-muted)',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {emp.date_joined}
-                  </td>
-                  <td className="px-4 py-3.5">
-                    <div className="flex gap-1">
-                      <button
-                        className="p-1.5 rounded-lg transition-colors"
-                        style={{ color: 'var(--text-muted)' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            'var(--accent-light)';
-                          e.currentTarget.style.color = 'var(--accent)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = 'var(--text-muted)';
-                        }}
-                        onClick={() => setEditTarget(emp)}
-                        title="Edit"
-                      >
-                        <Pencil size={14} />
-                      </button>
-                      <button
-                        className="p-1.5 rounded-lg transition-colors"
-                        style={{ color: 'var(--text-muted)' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            'var(--danger-light)';
-                          e.currentTarget.style.color = 'var(--danger)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = 'var(--text-muted)';
-                        }}
-                        onClick={() => setDeleteTarget(emp)}
-                        title="Delete"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      {emp.date_joined}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <div className="flex gap-1">
+                        <button
+                          className="p-1.5 rounded-lg transition-colors"
+                          style={{ color: 'var(--text-muted)' }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'var(--accent-light)';
+                            e.currentTarget.style.color = 'var(--accent)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'transparent';
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                          }}
+                          onClick={() => setEditTarget(emp)}
+                          title="Edit"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          className="p-1.5 rounded-lg transition-colors"
+                          style={{ color: 'var(--text-muted)' }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'var(--danger-light)';
+                            e.currentTarget.style.color = 'var(--danger)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor =
+                              'transparent';
+                            e.currentTarget.style.color = 'var(--text-muted)';
+                          }}
+                          onClick={() => setDeleteTarget(emp)}
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
