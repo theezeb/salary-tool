@@ -78,6 +78,24 @@ connection → begin transaction → run test → rollback → close
 
 ---
 
+## Testing Approach
+
+Tests were written to validate core business logic and edge cases across
+all endpoints. Each test maps directly to a specific business rule:
+
+- Validation rules (negative salary, duplicate email, invalid employment type)
+- CRUD correctness (404 on missing resource, 409 on conflict, 204 on delete)
+- Aggregation correctness (min/max/avg verified with known controlled inputs)
+- Pagination and filtering behaviour
+
+The test suite uses in-memory SQLite with per-test transaction rollback —
+fast, isolated, and deterministic. All 30 tests pass in under 2 seconds.
+
+Test-first thinking was applied to the API contract — expected status codes,
+validation rules, and response shapes were defined before implementation,
+ensuring the code was built to satisfy explicit behavioural requirements.
+
+
 ## What I would add with more time
 
 1. **Authentication** — JWT tokens, role-based access (HR Manager vs read-only)
